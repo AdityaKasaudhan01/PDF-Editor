@@ -1,5 +1,5 @@
 import { useEditorStore } from "../store/editorStore";
-import { fabric } from "fabric";
+import { Text } from "fabric";
 
 interface FormattingToolbarProps {
   onFindReplace: () => void;
@@ -23,7 +23,7 @@ export function FormattingToolbar({ onFindReplace }: FormattingToolbarProps) {
     const canvas = document.querySelector("canvas") as any;
     if (canvas && canvas.fabric) {
       const activeObj = canvas.fabric.getActiveObject();
-      if (activeObj && activeObj instanceof fabric.Text) {
+      if (activeObj && activeObj instanceof Text) {
         const currentUnderline = (activeObj as any).underline || false;
         (activeObj as any).set("underline", !currentUnderline);
         canvas.fabric.requestRenderAll();
