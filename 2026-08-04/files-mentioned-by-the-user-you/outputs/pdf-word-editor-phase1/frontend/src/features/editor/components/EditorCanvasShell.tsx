@@ -47,7 +47,7 @@ export function EditorCanvasShell() {
             title="Zoom out"
             type="button"
             disabled={zoom <= 0.5}
-            onClick={() => setZoom((prev) => Math.max(0.5, prev - 0.1))}
+            onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
           >
             <span className="text-xs font-mono">-</span>
           </button>
