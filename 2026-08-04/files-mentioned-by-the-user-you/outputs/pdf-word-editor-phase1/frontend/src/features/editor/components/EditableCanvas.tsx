@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
-import { Canvas, IText, Object, IEvent } from "fabric";
+import { Canvas, IText, Object } from "fabric";
 import { useDocumentStore } from "../store/documentStore";
 import { useEditorStore } from "../store/editorStore";
 import { useHistoryStore } from "../store/historyStore";
@@ -184,7 +184,7 @@ export function EditableCanvas() {
     const canvas = fabricRef.current;
     if (!canvas) return;
 
-    const handleMouseDown = (e: IEvent<MouseEvent>) => {
+    const handleMouseDown = (e: any) => {
       if (activeToolRef.current !== "text") return;
 
       const pointer = canvas.getScenePoint(e.e);
@@ -267,7 +267,7 @@ export function EditableCanvas() {
         e.preventDefault();
         const activeObject = canvas.getActiveObject();
         if (activeObject) {
-          activeObject.clone((cloned: any) => {
+          activeObject.clone().then((cloned: any) => {
             (window as any).__clipboard = cloned;
           });
         }
@@ -278,7 +278,7 @@ export function EditableCanvas() {
         e.preventDefault();
         const clipboard = (window as any).__clipboard;
         if (clipboard) {
-          clipboard.clone((cloned: any) => {
+          clipboard.clone().then((cloned: any) => {
             cloned.set({
               left: (cloned.left || 0) + 10,
               top: (cloned.top || 0) + 10
@@ -291,7 +291,7 @@ export function EditableCanvas() {
         return;
       }
 
-      if ((e.key === "Delete" || e.key === "Backspace") && !canvas.getActiveObject()?.isEditing) {
+      if ((e.key === "Delete" || e.key === "Backspace") && !(canvas.getActiveObject() as any)?.isEditing) {
         e.preventDefault();
         const activeObject = canvas.getActiveObject();
         if (activeObject && activeObject instanceof IText) {
