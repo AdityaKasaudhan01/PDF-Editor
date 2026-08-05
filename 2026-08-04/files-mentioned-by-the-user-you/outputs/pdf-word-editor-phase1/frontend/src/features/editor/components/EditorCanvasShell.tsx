@@ -57,7 +57,7 @@ export function EditorCanvasShell() {
             title="Zoom in"
             type="button"
             disabled={zoom >= 3}
-            onClick={() => setZoom((prev) => Math.min(3, prev + 0.1))}
+            onClick={() => setZoom(Math.min(3, zoom + 0.1))}
           >
             <span className="text-xs font-mono">+</span>
           </button>
