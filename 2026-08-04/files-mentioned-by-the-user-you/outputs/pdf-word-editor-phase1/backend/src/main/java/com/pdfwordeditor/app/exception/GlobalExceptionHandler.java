@@ -1,5 +1,6 @@
 package com.pdfwordeditor.app.exception;
 
+import com.pdfwordeditor.app.export.DocumentExportException;
 import java.time.Instant;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -15,9 +16,9 @@ public class GlobalExceptionHandler {
     return error(HttpStatus.BAD_REQUEST, "Validation failed");
   }
 
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<Map<String, Object>> unexpected(Exception ex) {
-    return error(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error");
+  @ExceptionHandler(DocumentExportException.class)
+  public ResponseEntity<Map<String, Object>> exportFailed(DocumentExportException ex) {
+    return error(HttpStatus.INTERNAL_SERVER_ERROR, "PDF export failed");
   }
 
   private ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
