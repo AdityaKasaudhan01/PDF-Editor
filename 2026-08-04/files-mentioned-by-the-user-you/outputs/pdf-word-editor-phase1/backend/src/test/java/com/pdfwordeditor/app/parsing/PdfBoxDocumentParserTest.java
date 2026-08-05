@@ -10,6 +10,7 @@ import com.pdfwordeditor.app.documentmodel.EditableDocument;
 import com.pdfwordeditor.app.documentmodel.PageModel;
 import com.pdfwordeditor.app.documentmodel.TextRunModel;
 import com.pdfwordeditor.app.export.PdfBoxDocumentExporter;
+import com.pdfwordeditor.app.imagemanager.ImageManagerPort;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -33,12 +34,26 @@ class PdfBoxDocumentParserTest {
     return new EditableDocument(UUID.randomUUID(), metadata, List.of(page));
   }
 
+  private ImageManagerPort noOpImageManager() {
+    return new ImageManagerPort() {
+      @Override
+      public String storeImage(byte[] bytes, String contentType) {
+        return "key";
+      }
+
+      @Override
+      public byte[] loadImage(String storageKey) {
+        return new byte[0];
+      }
+    };
+  }
+
   @Test
   void parsesGeneratedPdfIntoEditableDocument() {
-    PdfBoxDocumentExporter exporter = new PdfBoxDocumentExporter();
+    PdfBoxDocumentExporter exporter = new PdfBoxDocumentExporter(noOpImageManager());
     byte[] pdf = exporter.export(sampleDocument());
 
-    PdfBoxDocumentParser parser = new PdfBoxDocumentParser();
+    PdfBoxDocumentParser parser = new PdfBoxDocumentParser(noOpImageManager());
     EditableDocument parsed = parser.parse(pdf, "sample.pdf");
 
     assertEquals(1, parsed.pages().size());
