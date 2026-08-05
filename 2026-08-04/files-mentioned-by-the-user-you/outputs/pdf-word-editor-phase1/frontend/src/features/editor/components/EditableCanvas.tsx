@@ -16,6 +16,7 @@ export function EditableCanvas() {
   const activeToolRef = useRef(activeTool);
   const formattingRef = useRef(formatting);
   const [renderTrigger, setRenderTrigger] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
@@ -32,20 +33,22 @@ export function EditableCanvas() {
     const canvasEl = canvasRef.current;
     if (!canvasEl) return;
 
-    const canvas = new fabric.Canvas(canvasEl, {
-      backgroundColor: "#ffffff",
-      preserveObjectStacking: true,
-      selection: true,
-      width: 800,
-      height: 1000
-    });
+    try {
+      const canvas = new fabric.Canvas(canvasEl, {
+        backgroundColor: "#ffffff",
+        preserveObjectStacking: true,
+        selection: true
+      });
 
-    fabricRef.current = canvas;
+      fabricRef.current = canvas;
 
-    return () => {
-      canvas.dispose();
-      fabricRef.current = null;
-    };
+      return () => {
+        canvas.dispose();
+        fabricRef.current = null;
+      };
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to initialize canvas");
+    }
   }, []);
 
   useEffect(() => {
@@ -60,56 +63,59 @@ export function EditableCanvas() {
 
     if (!canvas || !doc) return;
 
-    canvas.clear();
-    canvas.backgroundColor = "#ffffff";
+    try {
+      canvas.clear();
+      canvas.backgroundColor = "#ffffff";
 
-    const page = doc.pages[pageIndex];
-    if (!page) return;
+      const page = doc.pages[pageIndex];
+      if (!page) return;
 
-    const pageWidthPx = ptToPx(page.width);
-    const pageHeightPx = ptToPx(page.height);
+      const pageWidthPx = ptToPx(page.width);
+      const pageHeightPx = ptToPx(page.height);
 
-    canvas.setWidth(pageWidthPx);
-    canvas.setHeight(pageHeightPx);
+      canvas.setWidth(pageWidthPx);
+      canvas.setHeight(pageHeightPx);
 
-    page.textRuns.forEach((run) => {
-      const left = ptToPx(run.boundingBox.x);
-      const top = ptToPx(run.boundingBox.y);
-      const fontSize = ptToPx(run.fontSize);
+      page.textRuns.forEach((run) => {
+        const left = ptToPx(run.boundingBox.x);
+        const top = ptToPx(run.boundingBox.y);
+        const fontSize = ptToPx(run.fontSize);
 
-      const text = new fabric.Text(run.text, {
-        left,
-        top,
-        fontFamily: run.fontFamily,
-        fontSize,
-        fill: run.color,
-        fontWeight: run.fontWeight === "bold" ? "bold" : "normal",
-        fontStyle: run.fontStyle === "italic" ? "italic" : "normal",
-        originX: "left",
-        originY: "top",
-        // @ts-ignore - custom property
-        textRunId: run.id,
-        selectable: true,
-        evented: true,
-        editable: true
+        const text = new fabric.IText(run.text, {
+          left,
+          top,
+          fontFamily: run.fontFamily,
+          fontSize,
+          fill: run.color,
+          fontWeight: run.fontWeight === "bold" ? "bold" : "normal",
+          fontStyle: run.fontStyle === "italic" ? "italic" : "normal",
+          originX: "left",
+          originY: "top",
+          // @ts-ignore - custom property
+          textRunId: run.id,
+          selectable: true,
+          evented: true,
+          editable: true
+        });
+
+        canvas.add(text);
       });
 
-      canvas.add(text);
-    });
-
-    canvas.requestRenderAll();
+      canvas.requestRenderAll();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to render document");
+    }
   }, []);
 
   useEffect(() => {
     renderDocument();
   }, [renderTrigger, renderDocument]);
 
-  // Handle text changes and object modifications
   useEffect(() => {
     const canvas = fabricRef.current;
     if (!canvas) return;
 
-    const handleTextChanged = (e: { target: fabric.Text }) => {
+    const handleTextChanged = (e: { target: fabric.IText }) => {
       const textObj = e.target;
       // @ts-ignore
       const runId = textObj.textRunId;
@@ -137,7 +143,7 @@ export function EditableCanvas() {
 
     const handleObjectModified = (e: { target: fabric.Object }) => {
       const obj = e.target;
-      if (!(obj instanceof fabric.Text)) return;
+      if (!(obj instanceof fabric.IText)) return;
 
       // @ts-ignore
       const runId = obj.textRunId;
@@ -172,7 +178,6 @@ export function EditableCanvas() {
     };
   }, [updateTextRun]);
 
-  // Handle text tool click to insert new text
   useEffect(() => {
     const canvas = fabricRef.current;
     if (!canvas) return;
@@ -185,14 +190,11 @@ export function EditableCanvas() {
       const pageIndex = pageIndexRef.current;
       if (!doc) return;
 
-      // Check if clicking on existing text
-      if (e.target && e.target instanceof fabric.Text) {
-        // Enter editing mode for existing text
+      if (e.target && e.target instanceof fabric.IText) {
         (e.target as any).enterEditing();
         return;
       }
 
-      // Create new text run at click position
       const newRun: TextRun = {
         id: crypto.randomUUID(),
         text: "New Text",
@@ -212,8 +214,7 @@ export function EditableCanvas() {
 
       addTextRun(pageIndex, newRun);
 
-      // Create fabric text object
-      const text = new fabric.Text(newRun.text, {
+      const text = new fabric.IText(newRun.text, {
         left: pointer.x,
         top: pointer.y,
         fontFamily: newRun.fontFamily,
@@ -238,7 +239,6 @@ export function EditableCanvas() {
     return () => canvas.off("mouse:down", handleMouseDown);
   }, [addTextRun]);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const canvas = fabricRef.current;
@@ -247,27 +247,20 @@ export function EditableCanvas() {
       const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
       const modKey = isMac ? e.metaKey : e.ctrlKey;
 
-      // Undo: Ctrl+Z
       if (modKey && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
         const entry = undo();
-        if (entry) {
-          applyHistoryEntry(entry);
-        }
+        if (entry) applyHistoryEntry(entry);
         return;
       }
 
-      // Redo: Ctrl+Y or Ctrl+Shift+Z
       if ((modKey && e.key === "y") || (modKey && e.shiftKey && e.key === "z") || (modKey && e.key === "Z")) {
         e.preventDefault();
         const entry = redo();
-        if (entry) {
-          applyHistoryEntry(entry);
-        }
+        if (entry) applyHistoryEntry(entry);
         return;
       }
 
-      // Copy: Ctrl+C
       if (modKey && e.key === "c") {
         e.preventDefault();
         const activeObject = canvas.getActiveObject();
@@ -279,7 +272,6 @@ export function EditableCanvas() {
         return;
       }
 
-      // Paste: Ctrl+V
       if (modKey && e.key === "v") {
         e.preventDefault();
         const clipboard = (window as any).__clipboard;
@@ -297,11 +289,10 @@ export function EditableCanvas() {
         return;
       }
 
-      // Delete/Backspace: Delete selected object (only if not editing text)
       if ((e.key === "Delete" || e.key === "Backspace") && !canvas.getActiveObject()?.isEditing) {
         e.preventDefault();
         const activeObject = canvas.getActiveObject();
-        if (activeObject && activeObject instanceof fabric.Text) {
+        if (activeObject && activeObject instanceof fabric.IText) {
           // @ts-ignore
           const runId = activeObject.textRunId;
           if (runId) {
@@ -317,21 +308,18 @@ export function EditableCanvas() {
         return;
       }
 
-      // Find: Ctrl+F
       if (modKey && e.key === "f") {
         e.preventDefault();
         setFindReplaceOpen(true);
         return;
       }
 
-      // Replace: Ctrl+H
       if (modKey && e.key === "h") {
         e.preventDefault();
         setFindReplaceOpen(true);
         return;
       }
 
-      // Escape: Switch back to select tool
       if (e.key === "Escape") {
         setActiveTool("select");
         canvas.discardActiveObject();
@@ -359,9 +347,8 @@ export function EditableCanvas() {
     const page = document.pages[pageIndex];
     if (!page) return;
 
-    // Find and highlight matching text
     canvas.getObjects().forEach((obj) => {
-      if (obj instanceof fabric.Text) {
+      if (obj instanceof fabric.IText) {
         // @ts-ignore
         const runId = obj.textRunId;
         const run = page.textRuns.find((r) => r.id === runId);
@@ -422,6 +409,15 @@ export function EditableCanvas() {
     canvas.setZoom(zoom);
     canvas.requestRenderAll();
   }, [zoom]);
+
+  if (error) {
+    return (
+      <div className="p-4 text-red-600">
+        <p className="font-semibold">Editor error</p>
+        <pre className="text-sm">{error}</pre>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
