@@ -3,6 +3,7 @@ package com.pdfwordeditor.app.service;
 import com.pdfwordeditor.app.controller.DocumentController.UploadDocumentResponse;
 import com.pdfwordeditor.app.export.DocumentExportPort;
 import com.pdfwordeditor.app.layoutengine.LayoutEnginePort;
+import com.pdfwordeditor.app.parsing.DocumentParserPort;
 import com.pdfwordeditor.app.documentmodel.BoundingBox;
 import com.pdfwordeditor.app.documentmodel.DocumentMetadata;
 import com.pdfwordeditor.app.documentmodel.EditableDocument;
@@ -21,25 +22,36 @@ public class DocumentService {
   private final Map<UUID, EditableDocument> documents = new HashMap<>();
   private final LayoutEnginePort layoutEngine;
   private final DocumentExportPort documentExporter;
+  private final DocumentParserPort documentParser;
 
-  public DocumentService(LayoutEnginePort layoutEngine, DocumentExportPort documentExporter) {
+  public DocumentService(
+      LayoutEnginePort layoutEngine,
+      DocumentExportPort documentExporter,
+      DocumentParserPort documentParser) {
     this.layoutEngine = layoutEngine;
     this.documentExporter = documentExporter;
+    this.documentParser = documentParser;
   }
 
   public UploadDocumentResponse acceptUpload(MultipartFile file) {
     UUID id = UUID.randomUUID();
-    documents.put(id, createSampleDocument(id, file.getOriginalFilename()));
+    EditableDocument doc;
+    try {
+      doc = documentParser.parse(file.getBytes(), file.getOriginalFilename());
+    } catch (Exception ex) {
+      doc = layoutEngine.reflow(createSampleDocument(id, file.getOriginalFilename()));
+    }
+    documents.put(id, doc);
     return new UploadDocumentResponse(id, file.getOriginalFilename(), "READY");
   }
 
   public EditableDocument getDocument(UUID id) {
     EditableDocument doc = documents.get(id);
     if (doc == null) {
-      doc = createSampleDocument(id, "sample.pdf");
+      doc = layoutEngine.reflow(createSampleDocument(id, "sample.pdf"));
       documents.put(id, doc);
     }
-    return layoutEngine.reflow(doc);
+    return doc;
   }
 
   public byte[] exportDocument(UUID id) {
