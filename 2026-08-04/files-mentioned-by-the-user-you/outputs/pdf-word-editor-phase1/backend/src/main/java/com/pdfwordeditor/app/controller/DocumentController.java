@@ -7,7 +7,10 @@ import com.pdfwordeditor.app.service.DocumentService;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +41,16 @@ public class DocumentController {
   @GetMapping("/{id}")
   public EditableDocument getDocument(@PathVariable UUID id) {
     return documentService.getDocument(id);
+  }
+
+  @GetMapping("/{id}/export")
+  public ResponseEntity<byte[]> exportDocument(@PathVariable UUID id) {
+    byte[] pdf = documentService.exportDocument(id);
+    String safeName = "document-" + id + ".pdf";
+    return ResponseEntity.ok()
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + safeName + "\"")
+      .contentType(MediaType.APPLICATION_PDF)
+      .body(pdf);
   }
 
   public record UploadDocumentResponse(UUID id, String fileName, String status) {}
