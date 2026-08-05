@@ -3,6 +3,7 @@ package com.pdfwordeditor.app.parsing;
 import com.pdfwordeditor.app.documentmodel.BoundingBox;
 import com.pdfwordeditor.app.documentmodel.DocumentMetadata;
 import com.pdfwordeditor.app.documentmodel.EditableDocument;
+import com.pdfwordeditor.app.documentmodel.ImageElement;
 import com.pdfwordeditor.app.documentmodel.PageModel;
 import com.pdfwordeditor.app.documentmodel.TextRunModel;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class PdfBoxDocumentParser implements DocumentParserPort {
         stripper.setEndPage(i + 1);
         stripper.getText(pdf);
 
-        pages.add(new PageModel(i + 1, pageWidth, pageHeight, stripper.collectRuns()));
+        pages.add(new PageModel(i + 1, pageWidth, pageHeight, stripper.collectRuns(), List.of()));
       }
 
       DocumentMetadata metadata = new DocumentMetadata(fileName, null, pages.size());
