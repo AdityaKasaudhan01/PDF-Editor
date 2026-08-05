@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
-import { fabric } from "fabric";
+import { Canvas, IText, Object, IEvent } from "fabric";
 import { useDocumentStore } from "../store/documentStore";
 import { useEditorStore } from "../store/editorStore";
 import { useHistoryStore } from "../store/historyStore";
@@ -10,7 +10,7 @@ export function EditableCanvas() {
   const { zoom, activeTool, setActiveTool, formatting, applyFormatting } = useEditorStore();
   const { undo, redo, canUndo, canRedo } = useHistoryStore();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const fabricRef = useRef<fabric.Canvas | null>(null);
+  const fabricRef = useRef<Canvas | null>(null);
   const documentRef = useRef(document);
   const pageIndexRef = useRef(currentPageIndex);
   const activeToolRef = useRef(activeTool);
@@ -34,7 +34,7 @@ export function EditableCanvas() {
     if (!canvasEl) return;
 
     try {
-      const canvas = new fabric.Canvas(canvasEl, {
+      const canvas = new Canvas(canvasEl, {
         backgroundColor: "#ffffff",
         preserveObjectStacking: true,
         selection: true
@@ -81,7 +81,7 @@ export function EditableCanvas() {
         const top = ptToPx(run.boundingBox.y);
         const fontSize = ptToPx(run.fontSize);
 
-        const text = new fabric.IText(run.text, {
+        const text = new IText(run.text, {
           left,
           top,
           fontFamily: run.fontFamily,
@@ -115,7 +115,7 @@ export function EditableCanvas() {
     const canvas = fabricRef.current;
     if (!canvas) return;
 
-    const handleTextChanged = (e: { target: fabric.IText }) => {
+    const handleTextChanged = (e: { target: IText }) => {
       const textObj = e.target;
       // @ts-ignore
       const runId = textObj.textRunId;
@@ -141,7 +141,7 @@ export function EditableCanvas() {
       });
     };
 
-    const handleObjectModified = (e: { target: fabric.Object }) => {
+    const handleObjectModified = (e: { target: Object }) => {
       const obj = e.target;
       if (!(obj instanceof fabric.IText)) return;
 
@@ -182,7 +182,7 @@ export function EditableCanvas() {
     const canvas = fabricRef.current;
     if (!canvas) return;
 
-    const handleMouseDown = (e: fabric.IEvent<MouseEvent>) => {
+    const handleMouseDown = (e: IEvent<MouseEvent>) => {
       if (activeToolRef.current !== "text") return;
 
       const pointer = canvas.getScenePoint(e.e);
@@ -190,7 +190,7 @@ export function EditableCanvas() {
       const pageIndex = pageIndexRef.current;
       if (!doc) return;
 
-      if (e.target && e.target instanceof fabric.IText) {
+      if (e.target && e.target instanceof IText) {
         (e.target as any).enterEditing();
         return;
       }
@@ -214,7 +214,7 @@ export function EditableCanvas() {
 
       addTextRun(pageIndex, newRun);
 
-      const text = new fabric.IText(newRun.text, {
+      const text = new IText(newRun.text, {
         left: pointer.x,
         top: pointer.y,
         fontFamily: newRun.fontFamily,
@@ -292,7 +292,7 @@ export function EditableCanvas() {
       if ((e.key === "Delete" || e.key === "Backspace") && !canvas.getActiveObject()?.isEditing) {
         e.preventDefault();
         const activeObject = canvas.getActiveObject();
-        if (activeObject && activeObject instanceof fabric.IText) {
+        if (activeObject && activeObject instanceof IText) {
           // @ts-ignore
           const runId = activeObject.textRunId;
           if (runId) {
@@ -348,7 +348,7 @@ export function EditableCanvas() {
     if (!page) return;
 
     canvas.getObjects().forEach((obj) => {
-      if (obj instanceof fabric.IText) {
+      if (obj instanceof IText) {
         // @ts-ignore
         const runId = obj.textRunId;
         const run = page.textRuns.find((r) => r.id === runId);
