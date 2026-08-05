@@ -1,0 +1,10 @@
+node_modules/
+dist/
+target/
+.idea/
+.vscode/
+.env
+.env.local
+*.log
+uploads/
+storage/

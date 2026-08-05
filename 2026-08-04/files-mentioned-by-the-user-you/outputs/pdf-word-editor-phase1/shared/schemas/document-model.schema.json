@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pdf-word-editor.local/schemas/document-model.schema.json",
+  "title": "EditableDocument",
+  "type": "object",
+  "required": ["id", "metadata", "pages"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "metadata": {
+      "type": "object",
+      "required": ["pageCount"],
+      "properties": {
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "pageCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/page" }
+    }
+  },
+  "$defs": {
+    "page": {
+      "type": "object",
+      "required": ["pageNumber", "width", "height", "textRuns"],
+      "properties": {
+        "pageNumber": { "type": "integer", "minimum": 1 },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "textRuns": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/textRun" }
+        }
+      }
+    },
+    "textRun": {
+      "type": "object",
+      "required": ["id", "text", "fontFamily", "fontSize", "color", "boundingBox", "rotation"],
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "fontFamily": { "type": "string" },
+        "fontSize": { "type": "number" },
+        "fontWeight": { "type": "string" },
+        "fontStyle": { "type": "string" },
+        "color": { "type": "string" },
+        "boundingBox": { "$ref": "#/$defs/boundingBox" },
+        "rotation": { "type": "number" }
+      }
+    },
+    "boundingBox": {
+      "type": "object",
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" }
+      }
+    }
+  }
+}

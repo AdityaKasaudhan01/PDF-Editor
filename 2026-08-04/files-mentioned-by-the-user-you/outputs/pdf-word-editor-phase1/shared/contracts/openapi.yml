@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: PDF Word Editor API
+  version: 0.1.0
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Application is healthy
+  /api/documents:
+    post:
+      summary: Upload a PDF document
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Uploaded document accepted

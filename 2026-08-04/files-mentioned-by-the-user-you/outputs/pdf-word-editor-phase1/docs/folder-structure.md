@@ -1,0 +1,39 @@
+# Folder Structure
+
+```text
+pdf-word-editor-phase1/
+  frontend/
+    src/
+      app/
+      components/layout/
+      features/
+        documents/
+          api/
+          components/
+        editor/
+          components/
+          store/
+      lib/
+  backend/
+    src/main/java/com/pdfwordeditor/app/
+      authentication/
+      config/
+      controller/
+      service/
+      repository/
+      pdfparser/
+      layoutengine/
+      documentmodel/
+      renderengine/
+      pdfgenerator/
+      fontmanager/
+      imagemanager/
+      historymanager/
+      exception/
+    src/main/resources/
+    src/test/java/
+  shared/
+    schemas/
+    contracts/
+  docs/
+```
