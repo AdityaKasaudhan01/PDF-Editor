@@ -1,6 +1,7 @@
 package com.pdfwordeditor.app.service;
 
 import com.pdfwordeditor.app.controller.DocumentController.UploadDocumentResponse;
+import com.pdfwordeditor.app.export.DocumentExportPort;
 import com.pdfwordeditor.app.layoutengine.LayoutEnginePort;
 import com.pdfwordeditor.app.documentmodel.BoundingBox;
 import com.pdfwordeditor.app.documentmodel.DocumentMetadata;
@@ -19,9 +20,11 @@ public class DocumentService {
 
   private final Map<UUID, EditableDocument> documents = new HashMap<>();
   private final LayoutEnginePort layoutEngine;
+  private final DocumentExportPort documentExporter;
 
-  public DocumentService(LayoutEnginePort layoutEngine) {
+  public DocumentService(LayoutEnginePort layoutEngine, DocumentExportPort documentExporter) {
     this.layoutEngine = layoutEngine;
+    this.documentExporter = documentExporter;
   }
 
   public UploadDocumentResponse acceptUpload(MultipartFile file) {
@@ -37,6 +40,11 @@ public class DocumentService {
       documents.put(id, doc);
     }
     return layoutEngine.reflow(doc);
+  }
+
+  public byte[] exportDocument(UUID id) {
+    EditableDocument doc = getDocument(id);
+    return documentExporter.export(doc);
   }
 
   private EditableDocument createSampleDocument(UUID id, String fileName) {
