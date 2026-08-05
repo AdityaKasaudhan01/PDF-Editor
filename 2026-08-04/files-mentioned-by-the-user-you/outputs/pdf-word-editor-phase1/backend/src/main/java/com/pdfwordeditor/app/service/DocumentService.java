@@ -1,6 +1,7 @@
 package com.pdfwordeditor.app.service;
 
 import com.pdfwordeditor.app.controller.DocumentController.UploadDocumentResponse;
+import com.pdfwordeditor.app.layoutengine.LayoutEnginePort;
 import com.pdfwordeditor.app.documentmodel.BoundingBox;
 import com.pdfwordeditor.app.documentmodel.DocumentMetadata;
 import com.pdfwordeditor.app.documentmodel.EditableDocument;
@@ -17,6 +18,11 @@ import org.springframework.web.multipart.MultipartFile;
 public class DocumentService {
 
   private final Map<UUID, EditableDocument> documents = new HashMap<>();
+  private final LayoutEnginePort layoutEngine;
+
+  public DocumentService(LayoutEnginePort layoutEngine) {
+    this.layoutEngine = layoutEngine;
+  }
 
   public UploadDocumentResponse acceptUpload(MultipartFile file) {
     UUID id = UUID.randomUUID();
@@ -30,7 +36,7 @@ public class DocumentService {
       doc = createSampleDocument(id, "sample.pdf");
       documents.put(id, doc);
     }
-    return doc;
+    return layoutEngine.reflow(doc);
   }
 
   private EditableDocument createSampleDocument(UUID id, String fileName) {
