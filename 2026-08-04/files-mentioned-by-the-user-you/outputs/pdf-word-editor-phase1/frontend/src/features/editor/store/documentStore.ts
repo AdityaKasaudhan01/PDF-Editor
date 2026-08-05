@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { fetchDocumentById } from "../api/documentApi";
+import { fetchDocumentById } from "../../documents/api/documentApi";
 import { EditableDocument, TextRun } from "@/types/document";
 import { useHistoryStore } from "./historyStore";
 
