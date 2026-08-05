@@ -1,11 +1,14 @@
 package com.pdfwordeditor.app.export;
 
 import com.pdfwordeditor.app.documentmodel.EditableDocument;
+import com.pdfwordeditor.app.documentmodel.ImageElement;
 import com.pdfwordeditor.app.documentmodel.PageModel;
 import com.pdfwordeditor.app.documentmodel.TextRunModel;
+import com.pdfwordeditor.app.imagemanager.ImageManagerPort;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -13,11 +16,18 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFontDescriptor;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.util.Matrix;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PdfBoxDocumentExporter implements DocumentExportPort {
+
+  private final ImageManagerPort imageManager;
+
+  public PdfBoxDocumentExporter(ImageManagerPort imageManager) {
+    this.imageManager = imageManager;
+  }
 
   @Override
   public byte[] export(EditableDocument document) {
@@ -32,6 +42,11 @@ public class PdfBoxDocumentExporter implements DocumentExportPort {
               continue;
             }
             drawRun(content, page, run);
+          }
+
+          List<ImageElement> images = page.images() != null ? page.images() : List.of();
+          for (ImageElement image : images) {
+            drawImage(content, pdf, page, image);
           }
         }
       }
@@ -63,6 +78,28 @@ public class PdfBoxDocumentExporter implements DocumentExportPort {
     }
     content.showText(run.text());
     content.endText();
+  }
+
+  private void drawImage(PDPageContentStream content, PDDocument pdf, PageModel page, ImageElement image)
+      throws IOException {
+    if (image.storageKey() == null) {
+      return;
+    }
+    try {
+      byte[] data = imageManager.loadImage(image.storageKey());
+      PDImageXObject xobject = PDImageXObject.createFromByteArray(pdf, data, image.id());
+      double x = image.boundingBox().x();
+      double y = page.height() - (image.boundingBox().y() + image.boundingBox().height());
+      content.drawImage(
+        xobject,
+        (float) x,
+        (float) y,
+        (float) image.boundingBox().width(),
+        (float) image.boundingBox().height()
+      );
+    } catch (Exception e) {
+      // skip image that cannot be loaded
+    }
   }
 
   private PDType1Font resolveFont(String family, String weight, String style) {
