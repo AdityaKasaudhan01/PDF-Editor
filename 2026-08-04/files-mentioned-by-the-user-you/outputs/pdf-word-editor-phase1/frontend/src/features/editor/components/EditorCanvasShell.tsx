@@ -4,6 +4,7 @@ import { useEditorStore } from "../store/editorStore";
 import { useDocumentStore } from "../store/documentStore";
 import { EditableCanvas } from "./EditableCanvas";
 import { FormattingToolbar } from "./FormattingToolbar";
+import { exportDocument } from "../../documents/api/documentApi";
 
 const tools = [
   { id: "select", label: "Select", icon: MousePointer2 },
@@ -18,6 +19,28 @@ export function EditorCanvasShell() {
   const setZoom = useEditorStore((state) => state.setZoom);
   const { document, currentPageIndex, previousPage, nextPage } = useDocumentStore();
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (!document) return;
+    try {
+      setExporting(true);
+      const blob = await exportDocument(document.id);
+      const url = URL.createObjectURL(blob);
+      const link = window.document.createElement("a");
+      const baseName = document.metadata?.title?.replace(/\.pdf$/i, "") || "document";
+      link.href = url;
+      link.download = `${baseName}.pdf`;
+      window.document.body.appendChild(link);
+      link.click();
+      window.document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed", err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <section className="flex flex-col h-full">
@@ -42,6 +65,15 @@ export function EditorCanvasShell() {
         })}
 
         <div className="ml-auto flex items-center gap-2">
+          <button
+            className="rounded px-3 py-1 text-sm bg-accent text-white hover:bg-blue-600 disabled:opacity-50"
+            type="button"
+            disabled={!document || exporting}
+            onClick={handleExport}
+            title="Export PDF"
+          >
+            {exporting ? "Exporting…" : "Export PDF"}
+          </button>
           <button
             className="rounded p-2 hover:bg-slate-100 disabled:opacity-50"
             title="Zoom out"
