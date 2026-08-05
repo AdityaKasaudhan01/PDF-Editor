@@ -1,6 +1,7 @@
 package com.pdfwordeditor.app.exception;
 
 import com.pdfwordeditor.app.export.DocumentExportException;
+import com.pdfwordeditor.app.parsing.DocumentParseException;
 import java.time.Instant;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,11 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, Object>> validation(MethodArgumentNotValidException ex) {
     return error(HttpStatus.BAD_REQUEST, "Validation failed");
+  }
+
+  @ExceptionHandler(DocumentParseException.class)
+  public ResponseEntity<Map<String, Object>> parseFailed(DocumentParseException ex) {
+    return error(HttpStatus.BAD_REQUEST, "Failed to parse uploaded document");
   }
 
   @ExceptionHandler(DocumentExportException.class)
