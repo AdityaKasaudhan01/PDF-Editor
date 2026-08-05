@@ -42,7 +42,7 @@ class PdfBoxDocumentExporterTest {
       0
     );
 
-    PageModel page = new PageModel(1, 612, 792, List.of(run1, run2));
+    PageModel page = new PageModel(1, 612, 792, List.of(run1, run2), List.of());
     DocumentMetadata metadata = new DocumentMetadata("sample.pdf", null, 1);
     return new EditableDocument(UUID.randomUUID(), metadata, List.of(page));
   }
