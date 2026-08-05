@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { Canvas } from "fabric";
 
 type EditorTool = "select" | "text" | "image";
 
@@ -14,10 +15,12 @@ type EditorState = {
   activeTool: EditorTool;
   zoom: number;
   formatting: TextFormatting;
+  canvasInstance: Canvas | null;
   setActiveTool: (tool: EditorTool) => void;
   setZoom: (zoom: number) => void;
   setFormatting: (formatting: Partial<TextFormatting>) => void;
   applyFormatting: (target: any) => void;
+  setCanvasInstance: (canvas: Canvas | null) => void;
 };
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -30,6 +33,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     fontStyle: "normal",
     color: "#000000"
   },
+  canvasInstance: null,
   setActiveTool: (activeTool) => set({ activeTool }),
   setZoom: (zoom) => set({ zoom }),
   setFormatting: (formatting) =>
@@ -52,5 +56,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     if (canvas) {
       canvas.requestRenderAll();
     }
-  }
+  },
+  setCanvasInstance: (canvasInstance) => set({ canvasInstance })
 }));
