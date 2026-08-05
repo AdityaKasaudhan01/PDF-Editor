@@ -7,7 +7,7 @@ import { TextRun } from "@/types/document";
 
 export function EditableCanvas() {
   const { document, currentPageIndex, updateTextRun, deleteTextRun, addTextRun } = useDocumentStore();
-  const { zoom, activeTool, setActiveTool, formatting, applyFormatting } = useEditorStore();
+  const { zoom, activeTool, setActiveTool, formatting, applyFormatting, setCanvasInstance } = useEditorStore();
   const { undo, redo, canUndo, canRedo } = useHistoryStore();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fabricRef = useRef<Canvas | null>(null);
@@ -41,10 +41,12 @@ export function EditableCanvas() {
       });
 
       fabricRef.current = canvas;
+      setCanvasInstance(canvas);
 
       return () => {
         canvas.dispose();
         fabricRef.current = null;
+        setCanvasInstance(null);
       };
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to initialize canvas");
