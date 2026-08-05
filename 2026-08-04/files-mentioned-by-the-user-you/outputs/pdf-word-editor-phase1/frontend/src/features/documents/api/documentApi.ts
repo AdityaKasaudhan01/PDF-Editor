@@ -25,3 +25,13 @@ export async function fetchDocumentById(id: string): Promise<EditableDocument> {
 
   return response.json();
 }
+
+export async function exportDocument(id: string): Promise<Blob> {
+  const response = await fetch(`/api/documents/${id}/export`);
+
+  if (!response.ok) {
+    throw new Error("Failed to export document");
+  }
+
+  return response.blob();
+}
