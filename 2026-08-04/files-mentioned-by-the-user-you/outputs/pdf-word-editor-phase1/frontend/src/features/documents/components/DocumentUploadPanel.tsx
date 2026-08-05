@@ -1,6 +1,6 @@
 import { Upload } from "lucide-react";
 import { useState } from "react";
-import { uploadDocument } from "./api/documentApi";
+import { uploadDocument } from "../api/documentApi";
 import { useDocumentStore } from "@/features/editor/store/documentStore";
 
 export function DocumentUploadPanel() {
