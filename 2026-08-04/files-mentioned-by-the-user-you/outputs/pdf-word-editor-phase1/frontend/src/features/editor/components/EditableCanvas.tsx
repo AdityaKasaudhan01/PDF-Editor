@@ -143,7 +143,7 @@ export function EditableCanvas() {
 
     const handleObjectModified = (e: { target: Object }) => {
       const obj = e.target;
-      if (!(obj instanceof fabric.IText)) return;
+      if (!(obj instanceof IText)) return;
 
       // @ts-ignore
       const runId = obj.textRunId;
