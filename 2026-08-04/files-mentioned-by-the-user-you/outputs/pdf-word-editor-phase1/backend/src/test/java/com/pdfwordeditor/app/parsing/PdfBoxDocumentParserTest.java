@@ -28,7 +28,7 @@ class PdfBoxDocumentParserTest {
       new BoundingBox(72, 72, 200, 28),
       0
     );
-    PageModel page = new PageModel(1, 612, 792, List.of(run));
+    PageModel page = new PageModel(1, 612, 792, List.of(run), List.of());
     DocumentMetadata metadata = new DocumentMetadata("sample.pdf", null, 1);
     return new EditableDocument(UUID.randomUUID(), metadata, List.of(page));
   }
