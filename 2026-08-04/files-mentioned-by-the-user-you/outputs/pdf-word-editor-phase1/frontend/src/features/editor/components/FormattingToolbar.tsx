@@ -6,7 +6,7 @@ interface FormattingToolbarProps {
 }
 
 export function FormattingToolbar({ onFindReplace }: FormattingToolbarProps) {
-  const { formatting, setFormatting, applyFormatting, activeTool } = useEditorStore();
+  const { formatting, setFormatting, applyFormatting, activeTool, canvasInstance } = useEditorStore();
 
   const handleBold = () => {
     const newWeight = formatting.fontWeight === "bold" ? "normal" : "bold";
@@ -19,14 +19,12 @@ export function FormattingToolbar({ onFindReplace }: FormattingToolbarProps) {
   };
 
   const handleUnderline = () => {
-    // Fabric.js underline implementation
-    const canvas = document.querySelector("canvas") as any;
-    if (canvas && canvas.fabric) {
-      const activeObj = canvas.fabric.getActiveObject();
+    if (canvasInstance) {
+      const activeObj = canvasInstance.getActiveObject();
       if (activeObj && activeObj instanceof Text) {
         const currentUnderline = (activeObj as any).underline || false;
         (activeObj as any).set("underline", !currentUnderline);
-        canvas.fabric.requestRenderAll();
+        canvasInstance.requestRenderAll();
       }
     }
   };
@@ -44,9 +42,8 @@ export function FormattingToolbar({ onFindReplace }: FormattingToolbarProps) {
   };
 
   const applyToSelection = () => {
-    const canvas = document.querySelector("canvas") as any;
-    if (canvas && canvas.fabric) {
-      const activeObj = canvas.fabric.getActiveObject();
+    if (canvasInstance) {
+      const activeObj = canvasInstance.getActiveObject();
       applyFormatting(activeObj);
     }
   };
