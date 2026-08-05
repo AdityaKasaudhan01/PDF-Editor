@@ -2,6 +2,7 @@ package com.pdfwordeditor.app.exception;
 
 import com.pdfwordeditor.app.export.DocumentExportException;
 import com.pdfwordeditor.app.parsing.DocumentParseException;
+import com.pdfwordeditor.app.security.AuthException;
 import java.time.Instant;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,11 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, Object>> validation(MethodArgumentNotValidException ex) {
     return error(HttpStatus.BAD_REQUEST, "Validation failed");
+  }
+
+  @ExceptionHandler(AuthException.class)
+  public ResponseEntity<Map<String, Object>> authFailed(AuthException ex) {
+    return error(HttpStatus.BAD_REQUEST, ex.getMessage());
   }
 
   @ExceptionHandler(DocumentParseException.class)
